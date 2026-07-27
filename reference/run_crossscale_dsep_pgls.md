@@ -31,6 +31,9 @@ run_crossscale_dsep_pgls(
   family = NULL,
   engine = "numpyro",
   n.iter = 1000L,
+  n.burnin = 500L,
+  n.thin = 1L,
+  n.adapt = 500L,
   n.chains = 3L,
   quiet = FALSE
 )

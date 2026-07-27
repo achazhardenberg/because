@@ -24,6 +24,7 @@ plot_coef(
   multinomial_probabilities = TRUE,
   color_scheme = "sig_only",
   prob = 0.95,
+  true_values = NULL,
   ...
 )
 ```
@@ -73,6 +74,11 @@ plot_coef(
 - prob:
 
   Numeric; probability mass for the credibility interval (default 0.95).
+
+- true_values:
+
+  Optional named numeric vector of true parameter values to overlay on
+  the plot as open circles (shape 1).
 
 ## Value
 
