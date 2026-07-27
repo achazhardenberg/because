@@ -243,7 +243,9 @@ plot_coef.because <- function(
         ggplot2::aes(x = Path, y = Estimate, ymin = Lower, ymax = Upper, color = Significant)
     ) +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
-        ggplot2::geom_pointrange(linewidth = 0.8, size = 0.5) +
+        ggplot2::geom_pointrange(linewidth = 0.8, size = 0.5)
+
+    p <- p +
         ggplot2::coord_flip(ylim = axis_lim) +
         ggplot2::scale_color_manual(values = color_map, guide = "none") +
         ggplot2::labs(

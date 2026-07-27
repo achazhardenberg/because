@@ -1365,15 +1365,31 @@ because_model <- function(
 
       model_lines <- c(
         model_lines,
-        paste0("    # Poisson log link for ", response),
-        paste0(
+        paste0("    # Poisson log link for ", response)
+      )
+      
+      if (engine == "jags") {
+        model_lines <- c(model_lines, paste0(
           "    ",
           mu,
           "[i] <- exp(max(-20, min(10, ",
           linpred,
           err_term,
           ")))"
-        ),
+        ))
+      } else {
+        model_lines <- c(model_lines, paste0(
+          "    ",
+          mu,
+          "[i] <- exp(",
+          linpred,
+          err_term,
+          ")"
+        ))
+      }
+      
+      model_lines <- c(
+        model_lines,
         paste0("    ", response, "[i] ~ dpois(", mu, "[i])")
       )
       if (engine == "jags") {
@@ -1409,16 +1425,28 @@ because_model <- function(
 
       model_lines <- c(
         model_lines,
-        paste0("    # Negative Binomial log link for ", response),
-        paste0(
+        paste0("    # Negative Binomial log link for ", response)
+      )
+      
+      if (engine == "jags") {
+        model_lines <- c(model_lines, paste0(
           "    ",
           mu,
           "[i] <- exp(max(-20, min(10, ",
           linpred,
           err_term,
           ")))"
-        )
-      )
+        ))
+      } else {
+        model_lines <- c(model_lines, paste0(
+          "    ",
+          mu,
+          "[i] <- exp(",
+          linpred,
+          err_term,
+          ")"
+        ))
+      }
       if (engine == "jags") {
         model_lines <- c(
           model_lines,

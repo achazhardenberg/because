@@ -428,6 +428,10 @@ mag_basis_to_formulas <- function(
                     temp <- var1
                     var1 <- var2
                     var2 <- temp
+                    
+                    temp_lvl <- var1_lvl
+                    var1_lvl <- var2_lvl
+                    var2_lvl <- temp_lvl
                 }
             }
         }

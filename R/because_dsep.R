@@ -500,11 +500,18 @@ dsep_standard <- function(
       # Combine and deduplicate by group name
       combined_rand <- vocab_rand
       for (ir in inherited_rand) {
-        if (!any(sapply(combined_rand, function(x) x$group == ir$group))) {
-          # Only add if the grouping variable is NOT the predictor itself
-          test_var <- attr(t_eq, "test_var")
-          if (is.null(test_var) || ir$group != test_var) {
-            combined_rand[[length(combined_rand) + 1]] <- ir
+        # Only inject if explicitly requested in equations OR formally declared as a structure
+        is_requested <- any(sapply(random_terms, function(rt) rt$group == ir$group))
+        is_structure <- !is.null(hierarchical_info$structure_levels) && 
+                        (ir$group %in% names(hierarchical_info$structure_levels))
+        
+        if (is_requested || is_structure) {
+          if (!any(sapply(combined_rand, function(x) x$group == ir$group))) {
+            # Only add if the grouping variable is NOT the predictor itself
+            test_var <- attr(t_eq, "test_var")
+            if (is.null(test_var) || ir$group != test_var) {
+              combined_rand[[length(combined_rand) + 1]] <- ir
+            }
           }
         }
       }
@@ -796,11 +803,18 @@ dsep_with_latents <- function(
       # Combine and deduplicate by group name
       combined_rand <- vocab_rand
       for (ir in inherited_rand) {
-        if (!any(sapply(combined_rand, function(x) x$group == ir$group))) {
-          # Only add if the grouping variable is NOT the predictor itself
-          test_var <- attr(t_eq, "test_var")
-          if (is.null(test_var) || ir$group != test_var) {
-            combined_rand[[length(combined_rand) + 1]] <- ir
+        # Only inject if explicitly requested in equations OR formally declared as a structure
+        is_requested <- any(sapply(random_terms, function(rt) rt$group == ir$group))
+        is_structure <- !is.null(hierarchical_info$structure_levels) && 
+                        (ir$group %in% names(hierarchical_info$structure_levels))
+        
+        if (is_requested || is_structure) {
+          if (!any(sapply(combined_rand, function(x) x$group == ir$group))) {
+            # Only add if the grouping variable is NOT the predictor itself
+            test_var <- attr(t_eq, "test_var")
+            if (is.null(test_var) || ir$group != test_var) {
+              combined_rand[[length(combined_rand) + 1]] <- ir
+            }
           }
         }
       }
@@ -1141,6 +1155,9 @@ run_crossscale_dsep_pgls <- function(
   family    = NULL,
   engine    = "numpyro",
   n.iter    = 1000L,
+  n.burnin  = 500L,
+  n.thin    = 1L,
+  n.adapt   = 500L,
   n.chains  = 3L,
   quiet     = FALSE
 ) {
@@ -1165,7 +1182,7 @@ run_crossscale_dsep_pgls <- function(
   grp     <- as.character(flat[[group_col]])
   fam_str <- if (!is.null(family) && resp %in% names(family)) family[[resp]] else "gaussian"
 
-  agg_y <- if (fam_str %in% c("poisson", "negbin", "zip", "zinb")) {
+  agg_y <- if (fam_str %in% c("poisson", "negbin", "negbinomial", "zip", "zinb")) {
     tapply(log(pmax(y_raw, 0) + 0.5), grp, mean, na.rm = TRUE)
   } else if (fam_str %in% c("lognormal", "gamma", "exponential")) {
     tapply(log(pmax(y_raw, 1e-6)), grp, mean, na.rm = TRUE)
@@ -1285,6 +1302,9 @@ run_crossscale_dsep_pgls <- function(
       engine = engine,        # Use user-specified engine
       n.chains = n.chains,
       n.iter = n.iter,
+      n.burnin = n.burnin,
+      n.thin = n.thin,
+      n.adapt = n.adapt,
       quiet = TRUE            # Suppress inner compilation messages
     )
   }, error = function(e) {

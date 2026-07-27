@@ -13,6 +13,7 @@ plot_coef(object, ...)
   multinomial_probabilities = TRUE,
   color_scheme = "sig_only",
   prob = 0.95,
+  true_values = NULL,
   ...
 )
 }
@@ -44,6 +45,8 @@ matching the arcs in the DAG.}
 }}
 
 \item{prob}{Numeric; probability mass for the credibility interval (default 0.95).}
+
+\item{true_values}{Optional named numeric vector of true parameter values to overlay on the plot as open circles (shape 1).}
 }
 \value{
 A \code{ggplot} object. Use standard \code{ggplot2} functions like \code{+ ggtitle()}

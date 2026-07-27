@@ -4326,6 +4326,18 @@ because <- function(
             }, silent = TRUE)
           }
         }
+        
+        # [CRITICAL FIX] Export the auto-initialized values back into nimble_inits
+        # so they can be sent to parallel workers.
+        unique_base_nodes <- unique(sub("\\[.*\\]", "", model_nodes))
+        for (v in unique_base_nodes) {
+            if (!v %in% names(nimble_inits)) {
+                try({
+                    nimble_inits[[v]] <- m_obj[[v]]
+                }, silent = TRUE)
+            }
+        }
+        
         m_obj
       },
       error = function(e) {
@@ -4661,9 +4673,9 @@ because <- function(
     }
     model <- nimble_model # Store the R (uncompiled) model object
     # Store compiled objects for because_continue() — NULL when parallel=TRUE
-    result$nimble_compiled <- if (exists("compiled_mcmc")) compiled_mcmc else NULL
-    result$nimble_cmodel   <- if (exists("compiled_model")) compiled_model else NULL
-    result$nimble_samplers <- nimble_samplers
+    saved_nimble_compiled <- if (exists("compiled_mcmc")) compiled_mcmc else NULL
+    saved_nimble_cmodel   <- if (exists("compiled_model")) compiled_model else NULL
+    saved_nimble_samplers <- nimble_samplers
   } else {
     # --- JAGS EXECUTION PIPELINE (Default) ---
     if (parallel && n.cores > 1 && n.chains > 1) {
@@ -5004,7 +5016,12 @@ because <- function(
   # NOTE: result$model already holds the live rjags object (from result list above).
   # result$model_code holds the model string for reference / recompilation.
   # Do NOT overwrite result$model here — keeping the live object enables because_continue().
-  result$engine         <- "jags"
+  result$engine         <- engine
+  if (engine == "nimble") {
+    result$nimble_compiled <- if (exists("saved_nimble_compiled")) saved_nimble_compiled else NULL
+    result$nimble_cmodel   <- if (exists("saved_nimble_cmodel")) saved_nimble_cmodel else NULL
+    result$nimble_samplers <- if (exists("saved_nimble_samplers")) saved_nimble_samplers else NULL
+  }
   result$samples        <- samples
   result$parameter_map  <- parameter_map
   result$data           <- data
@@ -5218,6 +5235,9 @@ run_single_dsep_test_v2 <- function(
       family = family,
       engine = engine,  # Pass the engine choice down!
       n.iter = synth_iter,
+      n.burnin = n.burnin,
+      n.thin = n.thin,
+      n.adapt = n.adapt,
       n.chains = n.chains,
       quiet = quiet
     ))
