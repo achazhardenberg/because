@@ -329,7 +329,11 @@ because <- function(
       link_vars <- as.list(link_vars)
   }
 
-  
+  # Un-nest equations if passed as nested list e.g. list(list(...))
+  if (is.list(equations) && length(equations) == 1 && is.list(equations[[1]]) && !inherits(equations[[1]], "formula")) {
+    equations <- equations[[1]]
+  }
+
   # --- Handle Terminology Aliases (Backward Compatibility) ---
   # hierarchy -> multiscale
   if (is.null(multiscale) && !is.null(hierarchy)) multiscale <- hierarchy
