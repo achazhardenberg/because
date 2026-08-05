@@ -3964,7 +3964,7 @@ because <- function(
       matches <- regmatches(
         out,
         regexec(
-          "(?:logit|log|cloglog|probit)?\\(?\\s*(\\w+)(?:\\[.*\\])?\\)?\\s*(?:<-|~)",
+          "(?:logit|log|cloglog|probit)?\\(?\\s*([a-zA-Z0-9_.]+)(?:\\[.*\\])?\\)?\\s*(?:<-|~)",
           out
         )
       )
@@ -4051,6 +4051,24 @@ because <- function(
     }
   }
 
+  # Guarantee monitor is not an empty character vector
+  if (is.null(monitor) || length(monitor) == 0) {
+    if (exists("all_params") && length(all_params) > 0) {
+      monitor <- all_params
+    }
+    if (is.null(monitor) || length(monitor) == 0) {
+      if (exists("lines") && length(lines) > 0) {
+        assign_lines <- grep("(<-|~)", lines, value = TRUE)
+        matches <- regmatches(
+          assign_lines,
+          regexec("^\\s*([a-zA-Z0-9_.]+)", assign_lines)
+        )
+        found <- sapply(matches, function(m) if (length(m) >= 2) m[2] else NA)
+        monitor <- unique(as.character(na.omit(found)))
+      }
+    }
+  }
+
   # --- NIMBLE pre-processing ---
   # Ensure all variables used as precision/covariance matrices are numeric matrices
   if (engine == "nimble" && is.list(data)) {
@@ -4091,7 +4109,7 @@ because <- function(
   matches <- regmatches(
     model_string,
     gregexpr(
-      "\\b([a-zA-Z0-9_]+)\\s*\\[1:N\\]\\s*~",
+      "\\b([a-zA-Z0-9_.]+)\\s*\\[1:N\\]\\s*~",
       model_string,
       perl = TRUE
     )

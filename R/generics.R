@@ -692,3 +692,39 @@ numpyro_structure_definition.matrix <- function(structure, variable_name = "err"
     # Default for matrices is fixed correlation handled natively by NumPyroBuilder
     return(NULL)
 }
+
+#' Update a Fitted because Model
+#'
+#' Re-evaluates a fitted \code{because} model object with modified arguments (e.g. new equations,
+#' updated data, or changed MCMC settings).
+#'
+#' @param object A fitted \code{because} model object.
+#' @param equations Optional updated formula list.
+#' @param data Optional updated data frame.
+#' @param ... Additional arguments to update or override in the original model call.
+#' @return A new fitted \code{because} model object.
+#' @export
+update.because <- function(object, equations, data, ...) {
+    call <- object$call
+    if (is.null(call)) {
+        stop("Need a 'because' object with a valid 'call' component to update.")
+    }
+
+    extras <- match.call(expand.dots = FALSE)$...
+
+    if (!missing(equations)) {
+        call$equations <- equations
+    }
+    if (!missing(data)) {
+        call$data <- data
+    }
+
+    if (length(extras) > 0) {
+        for (nm in names(extras)) {
+            call[[nm]] <- extras[[nm]]
+        }
+    }
+
+    eval(call, parent.frame())
+}
+
